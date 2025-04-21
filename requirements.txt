@@ -5,3 +5,7 @@ crispy-bootstrap4>=2022.1
 reportlab>=4.0.0
 xlsxwriter>=3.0.0
 python-dotenv>=1.0.0
+gunicorn>=21.2.0
+whitenoise>=6.5.0  # For serving static files
+dj-database-url>=2.1.0  # For database configuration
+psycopg2-binary>=2.9.9  # For PostgreSQL support

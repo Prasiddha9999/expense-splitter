@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: expense-splitter
+    env: python
+    branch: main  # Change to your main branch name (main or master)
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn expense_splitter.wsgi:application
+    envVars:
+      - key: DATABASE_URL
+        sync: false  # Set to true if you want to use Render's database
+      - key: SECRET_KEY
+        generateValue: true  # Automatically generates a secure secret key
+      - key: PYTHON_VERSION
+        value: 3.12.4
+      - key: WEB_CONCURRENCY
+        value: 4  # Number of Gunicorn workers
+      - key: DJANGO_SETTINGS_MODULE
+        value: expense_splitter.settings
+    disk:
+      name: expense-data
+      mountPath: /data
+      sizeGB: 1  # 1GB storage
