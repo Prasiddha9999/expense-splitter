@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Invite Members - {{ group.name }} - Group Expense Splitter{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="text-center">Invite Members to {{ group.name }}</h2>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <p>Share the link below to invite people to join your group. Anyone with this link can join the group.</p>
+                </div>
+                
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="inviteUrl" value="{{ invite_url }}" readonly>
+                    <button class="btn btn-outline-secondary" type="button" id="copyButton" onclick="copyInviteUrl()">
+                        <i class="bi bi-clipboard"></i> Copy
+                    </button>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <div class="qr-code-container mb-3">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ invite_url|urlencode }}" alt="QR Code" class="img-fluid">
+                    </div>
+                    <p>Scan this QR code to join the group</p>
+                </div>
+                
+                <div class="text-center mt-4">
+                    <a href="{% url 'group-detail' group.id %}" class="btn btn-primary">Back to Group</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function copyInviteUrl() {
+        var copyText = document.getElementById("inviteUrl");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999); /* For mobile devices */
+        document.execCommand("copy");
+        
+        var copyButton = document.getElementById("copyButton");
+        copyButton.innerHTML = '<i class="bi bi-check"></i> Copied!';
+        
+        setTimeout(function() {
+            copyButton.innerHTML = '<i class="bi bi-clipboard"></i> Copy';
+        }, 2000);
+    }
+</script>
+{% endblock %}

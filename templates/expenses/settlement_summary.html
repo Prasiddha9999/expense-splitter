@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load expense_extras %}
+
+{% block title %}Settlement Summary - {{ group.name }} - Group Expense Splitter{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1>Settlement Summary</h1>
+        <p class="text-muted">{{ group.name }}</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <div class="btn-group" role="group">
+            <a href="{% url 'export-pdf' group.id %}" class="btn btn-outline-primary">
+                <i class="bi bi-file-pdf"></i> Export to PDF
+            </a>
+            <a href="{% url 'export-excel' group.id %}" class="btn btn-outline-primary">
+                <i class="bi bi-file-excel"></i> Export to Excel
+            </a>
+            <a href="{% url 'group-detail' group.id %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Group
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Member Balances</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Member</th>
+                                <th>Balance</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for member in members %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="{{ member.profile.image.url }}" alt="{{ member.username }}" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                            {{ member.username }}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% with balance=balances|get_item:member.id %}
+                                            {{ balance|floatformat:2 }}
+                                        {% endwith %}
+                                    </td>
+                                    <td>
+                                        {% with balance=balances|get_item:member.id %}
+                                            {% if balance > 0 %}
+                                                <span class="badge bg-success">Is owed money</span>
+                                            {% elif balance < 0 %}
+                                                <span class="badge bg-danger">Owes money</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">Settled up</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Simplified Settlements</h5>
+            </div>
+            <div class="card-body">
+                {% if settlements %}
+                    <div class="alert alert-info">
+                        <p>These are the minimum payments needed to settle all debts in the group.</p>
+                    </div>
+                    <div class="list-group">
+                        {% for settlement in settlements %}
+                            <div class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <div>
+                                        <div class="d-flex align-items-center">
+                                            <img src="{{ settlement.payer.profile.image.url }}" alt="{{ settlement.payer.username }}" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                            <strong>{{ settlement.payer.username }}</strong>
+                                        </div>
+                                        <div class="ms-4 mt-2">
+                                            <i class="bi bi-arrow-right"></i> pays <strong>{{ settlement.amount|floatformat:2 }}</strong> to
+                                        </div>
+                                        <div class="d-flex align-items-center ms-4 mt-2">
+                                            <img src="{{ settlement.receiver.profile.image.url }}" alt="{{ settlement.receiver.username }}" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                            <strong>{{ settlement.receiver.username }}</strong>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-sm btn-success record-payment" data-payer="{{ settlement.payer.id }}" data-receiver="{{ settlement.receiver.id }}" data-amount="{{ settlement.amount }}">
+                                            <i class="bi bi-check-circle"></i> Record Payment
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-success">
+                        <p>Everyone is settled up! There are no outstanding debts in this group.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Payment History</h5>
+            </div>
+            <div class="card-body">
+                {% if db_settlements %}
+                    <div class="list-group">
+                        {% for settlement in db_settlements %}
+                            <div class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <div>
+                                        <div class="d-flex align-items-center">
+                                            <img src="{{ settlement.payer.profile.image.url }}" alt="{{ settlement.payer.username }}" class="rounded-circle me-2" style="width: 25px; height: 25px; object-fit: cover;">
+                                            <strong>{{ settlement.payer.username }}</strong>
+                                        </div>
+                                        <div class="ms-3 mt-1">
+                                            <small>
+                                                <i class="bi bi-arrow-right"></i> paid <strong>{{ settlement.amount }} {{ settlement.currency.code }}</strong> to
+                                            </small>
+                                        </div>
+                                        <div class="d-flex align-items-center ms-3 mt-1">
+                                            <img src="{{ settlement.receiver.profile.image.url }}" alt="{{ settlement.receiver.username }}" class="rounded-circle me-2" style="width: 25px; height: 25px; object-fit: cover;">
+                                            <strong>{{ settlement.receiver.username }}</strong>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        {% if settlement.is_paid %}
+                                            <span class="badge bg-success">Paid on {{ settlement.paid_at|date:"M d, Y" }}</span>
+                                        {% else %}
+                                            <a href="{% url 'mark-settlement-paid' settlement.id %}" class="btn btn-sm btn-outline-success">
+                                                <i class="bi bi-check-circle"></i> Mark as Paid
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <small class="text-muted">Created on {{ settlement.created_at|date:"M d, Y" }}</small>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="alert alert-info">
+                        <p>No payments have been recorded yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle record payment buttons
+        const recordPaymentButtons = document.querySelectorAll('.record-payment');
+
+        recordPaymentButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const payer = this.dataset.payer;
+                const receiver = this.dataset.receiver;
+                const amount = this.dataset.amount;
+
+                // Here you would typically make an AJAX call to record the payment
+                // For now, we'll just redirect to the group detail page with a success message
+                alert(`Payment of ${amount} from ${payer} to ${receiver} recorded!`);
+                window.location.href = "{% url 'group-detail' group.id %}";
+            });
+        });
+    });
+</script>
+{% endblock %}

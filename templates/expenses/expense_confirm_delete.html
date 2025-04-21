@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Expense - Group Expense Splitter{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h2 class="text-center">Delete Expense</h2>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <h4 class="alert-heading">Warning!</h4>
+                    <p>Are you sure you want to delete the expense "{{ expense.description }}"?</p>
+                    <p>This action cannot be undone. All splits and data associated with this expense will be permanently deleted.</p>
+                </div>
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Expense Details</h5>
+                        <p><strong>Amount:</strong> {{ expense.amount }} {{ expense.currency.code }}</p>
+                        <p><strong>Date:</strong> {{ expense.date|date:"F j, Y" }}</p>
+                        <p><strong>Paid by:</strong> {{ expense.payer.username }}</p>
+                        <p><strong>Group:</strong> {{ expense.group.name }}</p>
+                    </div>
+                </div>
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="form-group text-center mt-4">
+                        <button class="btn btn-danger" type="submit">Yes, Delete Expense</button>
+                        <a href="{% url 'expense-detail' expense.id %}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Profile - Group Expense Splitter{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-center">Profile Info</h3>
+            </div>
+            <div class="card-body text-center">
+                <img class="rounded-circle profile-img mb-3" src="{{ user.profile.image.url }}" alt="{{ user.username }}'s profile picture">
+                <h2 class="account-heading">{{ user.username }}</h2>
+                <p class="text-secondary">{{ user.email }}</p>
+                {% if user.profile.is_premium %}
+                    <span class="badge bg-warning text-dark">Premium User</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-center">Update Profile</h3>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <fieldset class="form-group">
+                        <legend class="border-bottom mb-4">Account Info</legend>
+                        {{ u_form|crispy }}
+                    </fieldset>
+                    <fieldset class="form-group">
+                        <legend class="border-bottom mb-4">Profile Picture</legend>
+                        {{ p_form|crispy }}
+                    </fieldset>
+                    <div class="form-group text-center mt-4">
+                        <button class="btn btn-primary" type="submit">Update</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="text-center">Account Settings</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">Change Password</h5>
+                                <p class="card-text">Update your password to keep your account secure.</p>
+                                <a href="{% url 'password_reset' %}" class="btn btn-outline-primary">Change Password</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <h5 class="card-title">Premium Features</h5>
+                                <p class="card-text">Upgrade to premium for multi-device sync and more features.</p>
+                                {% if user.profile.is_premium %}
+                                    <button class="btn btn-outline-secondary" disabled>Already Premium</button>
+                                {% else %}
+                                    <a href="#" class="btn btn-warning">Upgrade to Premium</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

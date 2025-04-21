@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Groups - Group Expense Splitter{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>My Groups</h1>
+    <a href="{% url 'group-create' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Create Group
+    </a>
+</div>
+
+{% if user_groups %}
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for group in user_groups %}
+            <div class="col">
+                <div class="card h-100 group-card">
+                    <img src="{{ group.image.url }}" class="card-img-top" alt="{{ group.name }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ group.name }}</h5>
+                        <p class="card-text">{{ group.description|truncatechars:100 }}</p>
+                        <p class="card-text">
+                            <small class="text-muted">
+                                <i class="bi bi-people-fill"></i> {{ group.get_member_count }} members
+                            </small>
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a href="{% url 'group-detail' group.id %}" class="btn btn-sm btn-primary">View Details</a>
+                        {% if user == group.admin %}
+                            <a href="{% url 'group-edit' group.id %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        <p>You don't have any groups yet. Create a new group to get started!</p>
+    </div>
+    <div class="text-center mt-4">
+        <a href="{% url 'group-create' %}" class="btn btn-lg btn-primary">Create Your First Group</a>
+    </div>
+{% endif %}
+
+{% if administered_groups and administered_groups != user_groups %}
+    <h2 class="mt-5">Groups You Administer</h2>
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for group in administered_groups %}
+            {% if group not in user_groups %}
+                <div class="col">
+                    <div class="card h-100 group-card">
+                        <img src="{{ group.image.url }}" class="card-img-top" alt="{{ group.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ group.name }}</h5>
+                            <p class="card-text">{{ group.description|truncatechars:100 }}</p>
+                            <p class="card-text">
+                                <small class="text-muted">
+                                    <i class="bi bi-people-fill"></i> {{ group.get_member_count }} members
+                                </small>
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <a href="{% url 'group-detail' group.id %}" class="btn btn-sm btn-primary">View Details</a>
+                            <a href="{% url 'group-edit' group.id %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load expense_extras %}
+
+{% block title %}Expense Details - Group Expense Splitter{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1>{{ expense.description }}</h1>
+        <p class="text-muted">{{ expense.date|date:"F j, Y" }}</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <div class="btn-group" role="group">
+            {% if user == expense.payer or user == group.admin %}
+                <a href="{% url 'expense-edit' expense.id %}" class="btn btn-outline-primary">
+                    <i class="bi bi-pencil"></i> Edit
+                </a>
+                <a href="{% url 'expense-delete' expense.id %}" class="btn btn-outline-danger">
+                    <i class="bi bi-trash"></i> Delete
+                </a>
+            {% endif %}
+            <a href="{% url 'group-detail' group.id %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to Group
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Expense Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Amount:</strong> {{ expense.amount }} {{ expense.currency.code }}</p>
+                        <p><strong>Date:</strong> {{ expense.date|date:"F j, Y" }}</p>
+                        <p><strong>Paid by:</strong> {{ expense.payer.username }}</p>
+                        <p><strong>Split type:</strong> {{ expense.get_split_type_display }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Group:</strong> <a href="{% url 'group-detail' group.id %}">{{ group.name }}</a></p>
+                        <p><strong>Created:</strong> {{ expense.created_at|date:"F j, Y H:i" }}</p>
+                        <p><strong>Currency:</strong> {{ expense.currency.name }} ({{ expense.currency.symbol }})</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Splits</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Participant</th>
+                                <th>Amount</th>
+                                <th>Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for split in splits %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="{{ split.participant.profile.image.url }}" alt="{{ split.participant.username }}" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                            {{ split.participant.username }}
+                                            {% if split.participant == expense.payer %}
+                                                <span class="badge bg-warning text-dark ms-2">Payer</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>{{ split.amount }} {{ expense.currency.code }}</td>
+                                    <td>{{ split.amount|floatformat:2|default:0.00 }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-light">
+                                <th>Total</th>
+                                <th>{{ expense.amount }} {{ expense.currency.code }}</th>
+                                <th>100%</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        {% if expense.receipt %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Receipt</h5>
+                </div>
+                <div class="card-body text-center">
+                    <a href="{{ expense.receipt.url }}" target="_blank">
+                        <img src="{{ expense.receipt.url }}" alt="Receipt" class="img-fluid mb-2">
+                    </a>
+                    <a href="{{ expense.receipt.url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                        <i class="bi bi-eye"></i> View Full Size
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Balance Impact</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2">This expense changes balances as follows:</p>
+                <ul class="list-group">
+                    {% for split in splits %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <img src="{{ split.participant.profile.image.url }}" alt="{{ split.participant.username }}" class="rounded-circle me-2" style="width: 25px; height: 25px; object-fit: cover;">
+                                {{ split.participant.username }}
+                            </div>
+                            {% if split.participant == expense.payer %}
+                                <span class="badge bg-success rounded-pill">+{{ expense.amount|sub:split.amount }} {{ expense.currency.code }}</span>
+                            {% else %}
+                                <span class="badge bg-danger rounded-pill">-{{ split.amount }} {{ expense.currency.code }}</span>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

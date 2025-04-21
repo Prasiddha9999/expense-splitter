@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ group.name }} - Group Expense Splitter{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h1>{{ group.name }}</h1>
+        <p class="text-muted">{{ group.description }}</p>
+    </div>
+    <div class="col-md-4 text-end">
+        <div class="btn-group" role="group">
+            <a href="{% url 'expense-create' group.id %}" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Add Expense
+            </a>
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="groupActionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-gear"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="groupActionsDropdown">
+                <li><a class="dropdown-item" href="{% url 'group-invite' group.id %}"><i class="bi bi-person-plus"></i> Invite Members</a></li>
+                <li><a class="dropdown-item" href="{% url 'settlement-summary' group.id %}"><i class="bi bi-cash"></i> Settlement Summary</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="{% url 'export-pdf' group.id %}"><i class="bi bi-file-pdf"></i> Export to PDF</a></li>
+                <li><a class="dropdown-item" href="{% url 'export-excel' group.id %}"><i class="bi bi-file-excel"></i> Export to Excel</a></li>
+                {% if user == group.admin %}
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{% url 'group-edit' group.id %}"><i class="bi bi-pencil"></i> Edit Group</a></li>
+                    <li><a class="dropdown-item text-danger" href="{% url 'group-delete' group.id %}"><i class="bi bi-trash"></i> Delete Group</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Group Summary</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Total Expenses:</strong> {{ total_expenses }}</p>
+                <p><strong>Members:</strong> {{ group.get_member_count }}</p>
+                <p><strong>Created:</strong> {{ group.created_at|date:"F j, Y" }}</p>
+                <p><strong>Admin:</strong> {{ group.admin.username }}</p>
+                <hr>
+                <p><strong>Your Balance:</strong> 
+                    {% if user_balance > 0 %}
+                        <span class="text-success">+{{ user_balance }} (You are owed)</span>
+                    {% elif user_balance < 0 %}
+                        <span class="text-danger">{{ user_balance }} (You owe)</span>
+                    {% else %}
+                        <span class="text-muted">0 (Settled up)</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Members</h5>
+                <a href="{% url 'group-invite' group.id %}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-person-plus"></i> Invite
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for member in group.members.all %}
+                        <div class="col-md-4 mb-3">
+                            <div class="d-flex align-items-center">
+                                <img src="{{ member.profile.image.url }}" alt="{{ member.username }}" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                <div>
+                                    <strong>{{ member.username }}</strong>
+                                    {% if member == group.admin %}
+                                        <span class="badge bg-warning text-dark">Admin</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Expenses</h5>
+        <a href="{% url 'expense-create' group.id %}" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-circle"></i> Add Expense
+        </a>
+    </div>
+    <div class="card-body">
+        {% if expenses %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Description</th>
+                            <th>Paid By</th>
+                            <th>Amount</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for expense in expenses %}
+                            <tr>
+                                <td>{{ expense.date|date:"M d, Y" }}</td>
+                                <td>{{ expense.description }}</td>
+                                <td>{{ expense.payer.username }}</td>
+                                <td>{{ expense.amount }} {{ expense.currency.code }}</td>
+                                <td>
+                                    <a href="{% url 'expense-detail' expense.id %}" class="btn btn-sm btn-outline-primary">View</a>
+                                    {% if user == expense.payer or user == group.admin %}
+                                        <a href="{% url 'expense-edit' expense.id %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                                        <a href="{% url 'expense-delete' expense.id %}" class="btn btn-sm btn-outline-danger">Delete</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info">
+                <p>No expenses have been added to this group yet.</p>
+            </div>
+            <div class="text-center">
+                <a href="{% url 'expense-create' group.id %}" class="btn btn-primary">Add First Expense</a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

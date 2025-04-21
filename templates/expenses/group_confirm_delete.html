@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Group - Group Expense Splitter{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h2 class="text-center">Delete Group</h2>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-warning">
+                    <h4 class="alert-heading">Warning!</h4>
+                    <p>Are you sure you want to delete the group "{{ group.name }}"?</p>
+                    <p>This action cannot be undone. All expenses, settlements, and data associated with this group will be permanently deleted.</p>
+                </div>
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="form-group text-center mt-4">
+                        <button class="btn btn-danger" type="submit">Yes, Delete Group</button>
+                        <a href="{% url 'group-detail' group.id %}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
