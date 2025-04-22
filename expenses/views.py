@@ -18,79 +18,181 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 
 def home(request):
-    # Simple home view that doesn't require database access
-    # This is useful for testing deployment
-    if request.method == 'GET' and request.GET.get('format') == 'json':
-        # Return a simple JSON response for API testing
-        return JsonResponse({
-            'status': 'success',
-            'message': 'Group Expense Splitter API is working',
-            'version': '1.0.0',
-            'environment': 'production' if os.environ.get('PRODUCTION') else 'development',
-        })
+    # Direct HTML response without using Django templates
+    # This ensures we don't have any template-related issues
+    html = '''
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Group Expense Splitter</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+        <style>
+            body {
+                font-family: 'Arial', sans-serif;
+                background-color: #f9f9f9;
+                color: #333;
+            }
+            .navbar {
+                background-color: #FFD700 !important;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .navbar-brand, .nav-link {
+                color: #333 !important;
+                font-weight: bold;
+            }
+            .hero {
+                background-color: #FFD700;
+                padding: 3rem 0;
+                margin-bottom: 2rem;
+            }
+            .hero h1 {
+                font-weight: bold;
+                color: #333;
+            }
+            .feature-icon {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 4rem;
+                height: 4rem;
+                font-size: 2rem;
+                border-radius: 50%;
+                background-color: #FFD700;
+                color: #333;
+                margin-bottom: 1rem;
+            }
+            .card {
+                border: none;
+                border-radius: 10px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                transition: transform 0.3s ease;
+                height: 100%;
+            }
+            .card:hover {
+                transform: translateY(-5px);
+            }
+            .btn-primary {
+                background-color: #FFD700;
+                border-color: #FFD700;
+                color: #333;
+                font-weight: bold;
+            }
+            .btn-primary:hover {
+                background-color: #FFC107;
+                border-color: #FFC107;
+                color: #333;
+            }
+            .btn-outline-primary {
+                border-color: #FFD700;
+                color: #333;
+            }
+            .btn-outline-primary:hover {
+                background-color: #FFD700;
+                border-color: #FFD700;
+                color: #333;
+            }
+            footer {
+                background-color: #333;
+                color: white;
+                padding: 2rem 0;
+                margin-top: 3rem;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-light">
+            <div class="container">
+                <a class="navbar-brand" href="/">Group Expense Splitter</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" href="/">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/login/">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/register/">Register</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
 
-    # Try to use the simplified template first
-    try:
-        return render(request, 'home_simple.html')
-    except Exception as e:
-        print(f"Error rendering home_simple.html: {e}")
-        # If that fails, try the regular template
-        try:
-            return render(request, 'home.html')
-        except Exception as e:
-            print(f"Error rendering home.html: {e}")
-            # If all else fails, return a simple HTML response
-            html = f'''
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Group Expense Splitter</title>
-                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-                <style>
-                    body {{ font-family: Arial, sans-serif; background-color: #f9f9f9; }}
-                    .container {{ max-width: 800px; margin: 0 auto; background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-top: 50px; }}
-                    h1 {{ color: #FFD700; }}
-                    .success {{ color: green; }}
-                    .feature {{ margin-top: 30px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }}
-                    .feature h3 {{ color: #FFD700; }}
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <h1 class="text-center mb-4">Group Expense Splitter</h1>
-                    <div class="alert alert-success">
-                        <p class="success">Application is running successfully!</p>
-                        <p>Running in {os.environ.get('DJANGO_SETTINGS_MODULE', 'unknown')} mode.</p>
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="container text-center">
+                <h1 class="display-4">Split Expenses with Friends</h1>
+                <p class="lead">Track who paid what and settle up without the hassle</p>
+            </div>
+        </section>
+
+        <!-- Main Content -->
+        <div class="container">
+            <!-- Features Section -->
+            <section class="py-5">
+                <h2 class="text-center mb-5">How It Works</h2>
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card p-4 text-center">
+                            <div class="feature-icon mx-auto">
+                                <i class="bi bi-people-fill"></i>
+                            </div>
+                            <h3>Create Groups</h3>
+                            <p>Create groups for trips, events, or roommates. Invite friends to join and start tracking expenses together.</p>
+                        </div>
                     </div>
-
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="feature">
-                                <h3>Create Groups</h3>
-                                <p>Organize expenses by creating groups for trips, events, or roommates.</p>
+                    <div class="col-md-4">
+                        <div class="card p-4 text-center">
+                            <div class="feature-icon mx-auto">
+                                <i class="bi bi-cash-stack"></i>
                             </div>
+                            <h3>Track Expenses</h3>
+                            <p>Add expenses with details like amount, date, description, and receipt. Split equally or customize how much each person pays.</p>
                         </div>
-                        <div class="col-md-4">
-                            <div class="feature">
-                                <h3>Track Expenses</h3>
-                                <p>Add expenses and split them equally or customize how much each person pays.</p>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card p-4 text-center">
+                            <div class="feature-icon mx-auto">
+                                <i class="bi bi-calculator"></i>
                             </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="feature">
-                                <h3>Settle Up</h3>
-                                <p>See who owes whom with our smart settlement calculator.</p>
-                            </div>
+                            <h3>Settle Up</h3>
+                            <p>See who owes whom with our smart settlement calculator. Mark debts as paid and keep everyone on the same page.</p>
                         </div>
                     </div>
                 </div>
-                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-            </body>
-            </html>
-            '''
-            return HttpResponse(html)
+            </section>
+
+            <!-- CTA Section -->
+            <section class="py-5 text-center">
+                <h2 class="mb-4">Ready to Get Started?</h2>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <a href="/register/" class="btn btn-primary btn-lg px-4 me-md-2">Sign Up Now</a>
+                    <a href="/login/" class="btn btn-outline-primary btn-lg px-4">Login</a>
+                </div>
+            </section>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <div class="container text-center">
+                <p>© 2025 Group Expense Splitter. All rights reserved.</p>
+            </div>
+        </footer>
+
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+    </html>
+    '''
+    return HttpResponse(html)
 
 @login_required
 def groups(request):
