@@ -1,1 +1,1 @@
-web: gunicorn expense_splitter.wsgi:application
+web: gunicorn wsgi:application

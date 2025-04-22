@@ -3,8 +3,8 @@ services:
     name: expense-splitter
     env: python
     branch: main  # Change to your main branch name (main or master)
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn expense_splitter.wsgi:application
+    buildCommand: chmod +x build.sh && ./build.sh
+    startCommand: gunicorn wsgi:application
     envVars:
       - key: DATABASE_URL
         sync: false  # Set to true if you want to use Render's database
@@ -15,7 +15,9 @@ services:
       - key: WEB_CONCURRENCY
         value: 4  # Number of Gunicorn workers
       - key: DJANGO_SETTINGS_MODULE
-        value: expense_splitter.settings
+        value: expense_splitter.production
+      - key: RENDER
+        value: true
     disk:
       name: expense-data
       mountPath: /data
