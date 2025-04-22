@@ -116,10 +116,10 @@ def home(request):
                             <a class="nav-link" href="/">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/login/">Login</a>
+                            <a class="nav-link" href="/users/login/">Login</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="/register/">Register</a>
+                            <a class="nav-link" href="/users/register/">Register</a>
                         </li>
                     </ul>
                 </div>
@@ -174,8 +174,8 @@ def home(request):
             <section class="py-5 text-center">
                 <h2 class="mb-4">Ready to Get Started?</h2>
                 <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                    <a href="/register/" class="btn btn-primary btn-lg px-4 me-md-2">Sign Up Now</a>
-                    <a href="/login/" class="btn btn-outline-primary btn-lg px-4">Login</a>
+                    <a href="/users/register/" class="btn btn-primary btn-lg px-4 me-md-2">Sign Up Now</a>
+                    <a href="/users/login/" class="btn btn-outline-primary btn-lg px-4">Login</a>
                 </div>
             </section>
         </div>
