@@ -1,7 +1,13 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import PasswordResetView
+from django.urls import reverse_lazy
 from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm
+import logging
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 def register(request):
     if request.method == 'POST':
@@ -36,3 +42,24 @@ def profile(request):
     }
 
     return render(request, 'users/profile.html', context)
+
+
+class CustomPasswordResetView(PasswordResetView):
+    success_url = reverse_lazy('password_reset_done')
+    email_template_name = 'registration/password_reset_email.html'
+    template_name = 'registration/password_reset_form.html'
+
+    def form_valid(self, form):
+        # Log the email being sent
+        email = form.cleaned_data['email']
+        logger.info(f"Sending password reset email to {email}")
+        try:
+            return super().form_valid(form)
+        except Exception as e:
+            # Log the error
+            logger.error(f"Failed to send password reset email to {email}")
+            logger.exception(e)
+            # Add an error message
+            messages.error(self.request, "There was an error sending the password reset email. Please try again later.")
+            # Return to the form with the error
+            return self.form_invalid(form)

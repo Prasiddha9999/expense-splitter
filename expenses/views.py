@@ -18,15 +18,15 @@ from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 
 def home(request):
-    # Direct HTML response without using Django templates
-    # This ensures we don't have any template-related issues
-    html = '''
+    # We can't use direct HTML anymore since we need to check authentication
+    # Let's use Django's template system
+    return render(request, 'home.html')
     <!DOCTYPE html>
     <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Group Expense Splitter</title>
+        <title>Divider</title>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
         <style>
@@ -36,13 +36,14 @@ def home(request):
                 color: #333;
             }
             .navbar {
-                background-color: #FFD700 !important;
+                background-color: #333 !important;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             }
             .navbar-brand, .nav-link {
-                color: #333 !important;
+                color: #FFD700 !important;
                 font-weight: bold;
             }
+
             .hero {
                 background-color: #FFD700;
                 padding: 3rem 0;
@@ -106,7 +107,7 @@ def home(request):
         <!-- Navigation -->
         <nav class="navbar navbar-expand-lg navbar-light">
             <div class="container">
-                <a class="navbar-brand" href="/">Group Expense Splitter</a>
+                <a class="navbar-brand" href="/">Divider</a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                     <span class="navbar-toggler-icon"></span>
                 </button>
@@ -115,12 +116,24 @@ def home(request):
                         <li class="nav-item">
                             <a class="nav-link" href="/">Home</a>
                         </li>
+                        {% if user.is_authenticated %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="/expenses/groups/">Groups</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/users/profile/">Profile</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/users/logout/">Logout</a>
+                        </li>
+                        {% else %}
                         <li class="nav-item">
                             <a class="nav-link" href="/users/login/">Login</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="/users/register/">Register</a>
                         </li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>
@@ -172,18 +185,25 @@ def home(request):
 
             <!-- CTA Section -->
             <section class="py-5 text-center">
+                {% if user.is_authenticated %}
+                <h2 class="mb-4">Manage Your Expenses</h2>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                    <a href="/expenses/groups/" class="btn btn-primary btn-lg px-4 me-md-2">Go to Groups</a>
+                </div>
+                {% else %}
                 <h2 class="mb-4">Ready to Get Started?</h2>
                 <div class="d-grid gap-2 d-md-flex justify-content-md-center">
                     <a href="/users/register/" class="btn btn-primary btn-lg px-4 me-md-2">Sign Up Now</a>
                     <a href="/users/login/" class="btn btn-outline-primary btn-lg px-4">Login</a>
                 </div>
+                {% endif %}
             </section>
         </div>
 
         <!-- Footer -->
         <footer>
             <div class="container text-center">
-                <p>© 2025 Group Expense Splitter. All rights reserved.</p>
+                <p>© 2025 Divider. All rights reserved.</p>
             </div>
         </footer>
 
