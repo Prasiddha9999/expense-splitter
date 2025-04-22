@@ -11,15 +11,17 @@
         <div class="d-grid gap-2 d-md-flex justify-content-md-start">
             {% if user.is_authenticated %}
                 <a href="{% url 'groups' %}" class="btn btn-primary btn-lg px-4 me-md-2">My Groups</a>
-                <a href="{% url 'group-create' %}" class="btn btn-outline-secondary btn-lg px-4">Create Group</a>
+                <a href="{% url 'group-create' %}" class="btn btn-outline-secondary btn-lg px-4 me-md-2">Create Group</a>
+                <a href="{% url 'group-join-page' %}" class="btn btn-outline-secondary btn-lg px-4">Join Group</a>
             {% else %}
                 <a href="{% url 'register' %}" class="btn btn-primary btn-lg px-4 me-md-2">Get Started</a>
-                <a href="{% url 'login' %}" class="btn btn-outline-secondary btn-lg px-4">Login</a>
+                <a href="{% url 'login' %}" class="btn btn-outline-secondary btn-lg px-4 me-md-2">Login</a>
+                <a href="{% url 'group-join-page' %}" class="btn btn-outline-secondary btn-lg px-4">Join Group</a>
             {% endif %}
         </div>
     </div>
     <div class="col-md-6 text-center">
-        <img src="{% static 'img/images.png' %}" class="img-fluid" alt="Divider">
+        <img src="{% static 'img/images.png' %}" class="img-fluid home-hero-image fade-in" alt="Divider">
     </div>
 </div>
 
@@ -27,10 +29,10 @@
 
 <div class="row g-4 py-5">
     <div class="col-md-4">
-        <div class="card h-100">
+        <div class="card h-100 slide-up" style="animation-delay: 0.1s;">
             <div class="card-body text-center">
                 <div class="feature-icon bg-primary bg-gradient text-white rounded-3 mb-3">
-                    <i class="bi bi-people-fill"></i>
+                    <i class="fas fa-users"></i>
                 </div>
                 <h3>Create Groups</h3>
                 <p>Create groups for trips, events, or roommates. Invite friends to join and start tracking expenses together.</p>
@@ -38,10 +40,10 @@
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card h-100">
+        <div class="card h-100 slide-up" style="animation-delay: 0.2s;">
             <div class="card-body text-center">
                 <div class="feature-icon bg-primary bg-gradient text-white rounded-3 mb-3">
-                    <i class="bi bi-cash-stack"></i>
+                    <i class="fas fa-money-bill-wave"></i>
                 </div>
                 <h3>Track Expenses</h3>
                 <p>Add expenses with details like amount, date, description, and receipt. Split equally or customize how much each person pays.</p>
@@ -49,10 +51,10 @@
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card h-100">
+        <div class="card h-100 slide-up" style="animation-delay: 0.3s;">
             <div class="card-body text-center">
                 <div class="feature-icon bg-primary bg-gradient text-white rounded-3 mb-3">
-                    <i class="bi bi-calculator"></i>
+                    <i class="fas fa-calculator"></i>
                 </div>
                 <h3>Settle Up</h3>
                 <p>See who owes whom with our smart settlement calculator. Mark debts as paid and keep everyone on the same page.</p>
@@ -64,34 +66,34 @@
 <hr class="my-5">
 
 <div class="row align-items-center py-5">
-    <div class="col-md-6 order-md-2">
+    <div class="col-md-6 order-md-2 slide-in-right">
         <h2>Multiple Currencies Support</h2>
         <p>Traveling abroad? No problem! Add expenses in different currencies and let our app handle the conversions automatically.</p>
         <ul class="list-unstyled">
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Support for major currencies</li>
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Real-time exchange rates</li>
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Automatic conversion</li>
+            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Support for major currencies</li>
+            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Real-time exchange rates</li>
+            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Automatic conversion</li>
         </ul>
     </div>
     <div class="col-md-6 order-md-1 text-center">
-        <img src="{% static 'img/multiple.png' %}" class="img-fluid" alt="Multiple Currencies">
+        <img src="{% static 'img/multiple.png' %}" class="img-fluid home-hero-image fade-in" alt="Multiple Currencies">
     </div>
 </div>
 
 <hr class="my-5">
 
 <div class="row align-items-center py-5">
-    <div class="col-md-6">
+    <div class="col-md-6 slide-in-right">
         <h2>Export & Backup</h2>
         <p>Export your group summaries to PDF or Excel. Backup your data to keep it safe and accessible across devices.</p>
         <ul class="list-unstyled">
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> PDF and Excel export</li>
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Cloud backup (for registered users)</li>
-            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> Multi-device sync</li>
+            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> PDF and Excel export</li>
+            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Cloud backup (for registered users)</li>
+            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Multi-device sync</li>
         </ul>
     </div>
     <div class="col-md-6 text-center">
-        <img src="{% static 'img/backup.png' %}" class="img-fluid" alt="Export & Backup">
+        <img src="{% static 'img/backup.png' %}" class="img-fluid home-hero-image fade-in" alt="Export & Backup">
     </div>
 </div>
 {% endblock %}

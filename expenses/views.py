@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
 from django.db.models import Sum, Q
-from .models import Group, Expense, ExpenseSplit, Settlement, Currency
+from .models import Group, Expense, ExpenseSplit, Settlement, Currency, Notification
 from .forms import GroupForm, ExpenseForm, ExpenseSplitFormSet
 import json
 import csv
@@ -129,8 +129,13 @@ def group_invite(request, group_id):
     if not group.invite_code:
         group.generate_invite_code()
 
-    # Build the invite URL using the qr_code (for QR code scanning)
-    invite_url = request.build_absolute_uri(f'/expenses/groups/join/{group.qr_code}/')
+    # Ensure QR code is the same as invite_code (for existing groups that might have UUID)
+    if group.qr_code != group.invite_code:
+        group.qr_code = group.invite_code
+        group.save(update_fields=['qr_code'])
+
+    # Build the invite URL using the invite_code (for QR code scanning)
+    invite_url = request.build_absolute_uri(f'/expenses/groups/join/{group.invite_code}/')
 
     return render(request, 'expenses/group_invite.html', {
         'group': group,
@@ -155,13 +160,14 @@ def group_join_by_code(request):
 
 
 def group_join(request, invite_code):
-    """Join a group using either the 5-digit code or QR code (UUID)"""
-    # Try to find group by invite_code (5-digit code) first
-    group = Group.objects.filter(invite_code=invite_code).first()
+    """Join a group using the 5-digit code"""
+    # Ensure we're only using 5-digit codes
+    if len(invite_code) != 5 or not invite_code.isdigit():
+        messages.error(request, 'Invalid invitation code format. Please use the 5-digit code.')
+        return redirect('group-join-page')
 
-    # If not found, try to find by qr_code (UUID)
-    if not group:
-        group = Group.objects.filter(qr_code=invite_code).first()
+    # Find group by invite_code (5-digit code)
+    group = Group.objects.filter(invite_code=invite_code).first()
 
     if not group:
         messages.error(request, 'Invalid invitation code. Please check and try again.')
@@ -209,11 +215,22 @@ def expense_create(request, group_id):
                     split.save()
                     total_split_amount += split.amount
 
-            # Validate total split amount matches expense amount
-            if total_split_amount != expense.amount:
+            # Validate total split amount is close to expense amount (allow for small rounding errors)
+            if abs(total_split_amount - expense.amount) > 0.01:
                 expense.delete()
                 messages.error(request, 'The sum of splits must equal the total expense amount.')
                 return render(request, 'expenses/expense_form.html', {'form': form, 'formset': formset, 'group': group})
+
+            # Create notifications for all group members except the expense creator
+            for member in group.members.all():
+                if member != request.user:
+                    Notification.objects.create(
+                        user=member,
+                        group=group,
+                        expense=expense,
+                        notification_type='expense_added',
+                        message=f'{request.user.username} added a new expense: {expense.description}'
+                    )
 
             messages.success(request, f'Expense "{expense.description}" has been added!')
             return redirect('group-detail', group_id=group.id)
@@ -272,8 +289,8 @@ def expense_edit(request, expense_id):
                     split.save()
                     total_split_amount += split.amount
 
-            # Validate total split amount matches expense amount
-            if total_split_amount != expense.amount:
+            # Validate total split amount is close to expense amount (allow for small rounding errors)
+            if abs(total_split_amount - expense.amount) > 0.01:
                 messages.error(request, 'The sum of splits must equal the total expense amount.')
                 return render(request, 'expenses/expense_form.html', {'form': form, 'formset': formset, 'group': group, 'expense': expense})
 
@@ -597,3 +614,31 @@ def export_excel(request, group_id):
     response['Content-Disposition'] = f'attachment; filename="{group.name}_expense_summary.xlsx"'
 
     return response
+
+@login_required
+def get_notifications(request):
+    """Get unread notifications for the current user"""
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')[:10]
+    unread_count = Notification.objects.filter(user=request.user, is_read=False).count()
+
+    context = {
+        'notifications': notifications,
+        'unread_count': unread_count
+    }
+
+    return render(request, 'expenses/notifications.html', context)
+
+@login_required
+def mark_notification_read(request, notification_id):
+    """Mark a notification as read"""
+    notification = get_object_or_404(Notification, id=notification_id, user=request.user)
+    notification.is_read = True
+    notification.save()
+
+    # Redirect to the appropriate page based on notification type
+    if notification.expense:
+        return redirect('expense-detail', expense_id=notification.expense.id)
+    elif notification.group:
+        return redirect('group-detail', group_id=notification.group.id)
+    else:
+        return redirect('get-notifications')

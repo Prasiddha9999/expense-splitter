@@ -18,7 +18,7 @@
                 <div class="input-group mb-3">
                     <input type="text" class="form-control" id="inviteUrl" value="{{ invite_url }}" readonly>
                     <button class="btn btn-outline-secondary" type="button" id="copyButton" onclick="copyInviteUrl()">
-                        <i class="bi bi-clipboard"></i> Copy
+                        <i class="fas fa-clipboard"></i> Copy
                     </button>
                 </div>
 
@@ -70,10 +70,10 @@
         document.execCommand("copy");
 
         var copyButton = document.getElementById("copyButton");
-        copyButton.innerHTML = '<i class="bi bi-check"></i> Copied!';
+        copyButton.innerHTML = '<i class="fas fa-check"></i> Copied!';
 
         setTimeout(function() {
-            copyButton.innerHTML = '<i class="bi bi-clipboard"></i> Copy';
+            copyButton.innerHTML = '<i class="fas fa-clipboard"></i> Copy';
         }, 2000);
     }
 </script>

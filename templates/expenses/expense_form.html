@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load crispy_forms_tags %}
 
-{% block title %}{% if expense %}Edit Expense{% else %}Add Expense{% endif %} - Group Expense Splitter{% endblock %}
+{% block title %}{% if expense %}Edit Expense{% else %}Add Expense{% endif %} - Divider{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
@@ -13,7 +13,7 @@
             <div class="card-body">
                 <form method="POST" enctype="multipart/form-data" id="expenseForm">
                     {% csrf_token %}
-                    
+
                     <div class="row">
                         <div class="col-md-6">
                             <h4>Expense Details</h4>
@@ -27,70 +27,47 @@
                             <h4>Additional Information</h4>
                             {{ form.split_type|as_crispy_field }}
                             {{ form.receipt|as_crispy_field }}
-                            
+
                             <div id="converted-amount-container" class="mb-3 d-none">
                                 <label class="form-label">Converted Amount</label>
                                 <div id="converted-amount" class="form-control-plaintext"></div>
                             </div>
                         </div>
                     </div>
-                    
+
                     <hr>
-                    
-                    <h4>Split Details</h4>
-                    <div id="splits-container">
+
+                    <h4>Participants</h4>
+                    <p class="text-muted">Select who's involved in this expense:</p>
+
+                    <div class="participant-selector mb-4">
+                        {% for member in group.members.all %}
+                            <div class="participant-card" data-member-id="{{ member.id }}" data-username="{{ member.username }}">
+                                <div class="member-circle">{{ member.username|first|upper }}</div>
+                                <span>{{ member.username }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div id="splits-container" class="d-none">
                         {{ formset.management_form }}
-                        
-                        <div class="row mb-2">
-                            <div class="col-md-6">
-                                <strong>Participant</strong>
-                            </div>
-                            <div class="col-md-5">
-                                <strong>Amount</strong>
-                            </div>
-                            <div class="col-md-1">
-                                <strong>Remove</strong>
-                            </div>
-                        </div>
-                        
+
                         {% for split_form in formset %}
-                            <div class="split-form row mb-2">
-                                <div class="col-md-6">
-                                    {{ split_form.participant|as_crispy_field }}
-                                </div>
-                                <div class="col-md-5">
-                                    {{ split_form.amount|as_crispy_field }}
-                                </div>
-                                <div class="col-md-1 d-flex align-items-center">
-                                    {% if forloop.counter > 1 %}
-                                        <button type="button" class="btn btn-sm btn-outline-danger remove-split">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    {% endif %}
-                                </div>
+                            <div class="split-form d-none">
+                                {{ split_form.participant }}
+                                {{ split_form.amount }}
                                 {% for hidden in split_form.hidden_fields %}
                                     {{ hidden }}
                                 {% endfor %}
                             </div>
                         {% endfor %}
                     </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-12">
-                            <button type="button" id="add-split" class="btn btn-sm btn-outline-primary">
-                                <i class="bi bi-plus-circle"></i> Add Participant
-                            </button>
-                        </div>
+
+                    <div class="alert alert-info" id="split-info">
+                        <p>The expense will be split equally among all selected participants.</p>
+                        <p id="split-amount-info">Each person will pay: <strong>0.00</strong></p>
                     </div>
-                    
-                    <div class="row mb-3">
-                        <div class="col-12">
-                            <button type="button" id="split-equally" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-people"></i> Split Equally Among All Members
-                            </button>
-                        </div>
-                    </div>
-                    
+
                     <div class="form-group text-center mt-4">
                         <button class="btn btn-primary" type="submit">Save Expense</button>
                         <a href="{% url 'group-detail' group.id %}" class="btn btn-outline-secondary">Cancel</a>
@@ -105,111 +82,90 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const splitType = document.getElementById('id_split_type');
-        const splitsContainer = document.getElementById('splits-container');
-        const addSplitBtn = document.getElementById('add-split');
-        const splitEquallyBtn = document.getElementById('split-equally');
         const totalAmount = document.getElementById('id_amount');
         const currencySelect = document.getElementById('id_currency');
         const convertedAmountContainer = document.getElementById('converted-amount-container');
         const convertedAmountDisplay = document.getElementById('converted-amount');
-        
-        // Show/hide splits based on split type
-        splitType.addEventListener('change', function() {
-            if (this.value === 'equal') {
-                splitsContainer.classList.add('d-none');
-            } else {
-                splitsContainer.classList.remove('d-none');
+        const participantCards = document.querySelectorAll('.participant-card');
+        const splitForms = document.querySelectorAll('.split-form');
+        const totalFormsInput = document.getElementById('id_splits-TOTAL_FORMS');
+        const splitAmountInfo = document.getElementById('split-amount-info').querySelector('strong');
+        const expenseForm = document.getElementById('expenseForm');
+
+        // Set split type to equal by default
+        document.getElementById('id_split_type').value = 'equal';
+
+        // Handle participant selection
+        participantCards.forEach(card => {
+            card.addEventListener('click', function() {
+                this.classList.toggle('selected');
+                updateSplitForms();
+            });
+
+            // Select the current user by default
+            if (card.dataset.username === document.getElementById('id_payer').value) {
+                card.classList.add('selected');
             }
         });
-        
-        // Add new split form
-        addSplitBtn.addEventListener('click', function() {
-            const forms = document.querySelectorAll('.split-form');
-            const formNum = forms.length;
-            const totalForms = document.getElementById('id_splits-TOTAL_FORMS');
-            
-            // Clone the first form
-            const newForm = forms[0].cloneNode(true);
-            
-            // Update form index
-            newForm.innerHTML = newForm.innerHTML.replace(/splits-0/g, `splits-${formNum}`);
-            newForm.innerHTML = newForm.innerHTML.replace(/splits-0/g, `splits-${formNum}`);
-            
-            // Clear input values
-            const inputs = newForm.querySelectorAll('input');
-            inputs.forEach(input => {
-                if (input.type !== 'hidden') {
-                    input.value = '';
+
+        // Update split forms based on selected participants
+        function updateSplitForms() {
+            const selectedCards = document.querySelectorAll('.participant-card.selected');
+            const selectedCount = selectedCards.length;
+
+            // Update total forms
+            totalFormsInput.value = selectedCount;
+
+            // Calculate equal split amount
+            const amount = parseFloat(totalAmount.value) || 0;
+            const equalAmount = selectedCount > 0 ? (amount / selectedCount).toFixed(2) : 0;
+
+            // Update split amount info
+            const currencyCode = currencySelect.options[currencySelect.selectedIndex].text;
+            splitAmountInfo.textContent = `${equalAmount} ${currencyCode}`;
+
+            // Clear all forms first
+            splitForms.forEach((form, index) => {
+                const participantInput = form.querySelector('select[name$="-participant"]');
+                const amountInput = form.querySelector('input[name$="-amount"]');
+
+                participantInput.selectedIndex = -1;
+                amountInput.value = '';
+            });
+
+            // Set values for selected participants
+            selectedCards.forEach((card, index) => {
+                if (index < splitForms.length) {
+                    const form = splitForms[index];
+                    const participantInput = form.querySelector('select[name$="-participant"]');
+                    const amountInput = form.querySelector('input[name$="-amount"]');
+
+                    // Set participant
+                    const memberId = card.dataset.memberId;
+                    for (let i = 0; i < participantInput.options.length; i++) {
+                        if (participantInput.options[i].value == memberId) {
+                            participantInput.selectedIndex = i;
+                            break;
+                        }
+                    }
+
+                    // Set amount
+                    amountInput.value = equalAmount;
                 }
             });
-            
-            // Add remove button
-            const removeBtn = document.createElement('button');
-            removeBtn.type = 'button';
-            removeBtn.className = 'btn btn-sm btn-outline-danger remove-split';
-            removeBtn.innerHTML = '<i class="bi bi-trash"></i>';
-            removeBtn.addEventListener('click', function() {
-                this.closest('.split-form').remove();
-                updateTotalForms();
-            });
-            
-            const btnCol = newForm.querySelector('.col-md-1');
-            btnCol.innerHTML = '';
-            btnCol.appendChild(removeBtn);
-            
-            // Add the new form
-            splitsContainer.appendChild(newForm);
-            
-            // Update total forms
-            totalForms.value = formNum + 1;
-        });
-        
-        // Remove split form
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('remove-split') || e.target.closest('.remove-split')) {
-                const btn = e.target.classList.contains('remove-split') ? e.target : e.target.closest('.remove-split');
-                btn.closest('.split-form').remove();
-                updateTotalForms();
-            }
-        });
-        
-        // Update total forms count
-        function updateTotalForms() {
-            const forms = document.querySelectorAll('.split-form');
-            const totalForms = document.getElementById('id_splits-TOTAL_FORMS');
-            totalForms.value = forms.length;
         }
-        
-        // Split equally among all members
-        splitEquallyBtn.addEventListener('click', function() {
-            const amount = parseFloat(totalAmount.value);
-            if (isNaN(amount) || amount <= 0) {
-                alert('Please enter a valid amount first.');
-                return;
-            }
-            
-            const forms = document.querySelectorAll('.split-form');
-            const memberCount = forms.length;
-            
-            if (memberCount === 0) {
-                alert('Please add at least one participant.');
-                return;
-            }
-            
-            const equalAmount = (amount / memberCount).toFixed(2);
-            
-            forms.forEach(form => {
-                const amountInput = form.querySelector('input[name$="-amount"]');
-                amountInput.value = equalAmount;
-            });
+
+        // Update split amounts when total amount changes
+        totalAmount.addEventListener('input', function() {
+            updateSplitForms();
+            updateConvertedAmount();
         });
-        
+
         // Currency conversion
         function updateConvertedAmount() {
             const amount = parseFloat(totalAmount.value) || 0;
             const currencyCode = currencySelect.options[currencySelect.selectedIndex].text;
-            
+
             if (amount > 0 && currencyCode) {
                 convertedAmountContainer.classList.remove('d-none');
                 convertedAmountDisplay.textContent = `${amount} ${currencyCode}`;
@@ -217,11 +173,34 @@
                 convertedAmountContainer.classList.add('d-none');
             }
         }
-        
-        totalAmount.addEventListener('input', updateConvertedAmount);
-        currencySelect.addEventListener('change', updateConvertedAmount);
-        
-        // Initial call
+
+        // Update when currency changes
+        currencySelect.addEventListener('change', function() {
+            updateSplitForms();
+            updateConvertedAmount();
+        });
+
+        // Form submission validation
+        expenseForm.addEventListener('submit', function(e) {
+            const selectedCards = document.querySelectorAll('.participant-card.selected');
+            if (selectedCards.length === 0) {
+                e.preventDefault();
+                alert('Please select at least one participant.');
+                return false;
+            }
+
+            const amount = parseFloat(totalAmount.value);
+            if (isNaN(amount) || amount <= 0) {
+                e.preventDefault();
+                alert('Please enter a valid amount.');
+                return false;
+            }
+
+            return true;
+        });
+
+        // Initial calls
+        updateSplitForms();
         updateConvertedAmount();
     });
 </script>

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications - Divider{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Notifications</h1>
+    
+    {% if notifications %}
+        <div class="list-group">
+            {% for notification in notifications %}
+                <a href="{% url 'mark-notification-read' notification.id %}" 
+                   class="list-group-item list-group-item-action notification-item {% if not notification.is_read %}unread{% endif %}">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1">{{ notification.get_notification_type_display }}</h5>
+                        <small class="notification-time">{{ notification.created_at|timesince }} ago</small>
+                    </div>
+                    <p class="mb-1">{{ notification.message }}</p>
+                    <small>
+                        {% if notification.group %}
+                            Group: {{ notification.group.name }}
+                        {% endif %}
+                    </small>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <p>You don't have any notifications yet.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

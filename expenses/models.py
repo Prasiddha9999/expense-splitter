@@ -24,7 +24,7 @@ class Group(models.Model):
     admin = models.ForeignKey(User, on_delete=models.CASCADE, related_name='administered_groups')
     members = models.ManyToManyField(User, related_name='expense_groups')
     invite_code = models.CharField(max_length=5, unique=True, blank=True)
-    qr_code = models.CharField(max_length=36, unique=True, default=uuid.uuid4)
+    qr_code = models.CharField(max_length=36, unique=True, blank=True)
     image = models.ImageField(upload_to='group_images', default='default_group.jpg')
 
     def __str__(self):
@@ -35,8 +35,13 @@ class Group(models.Model):
         is_new = self.pk is None
         super().save(*args, **kwargs)
 
-        if is_new and not self.invite_code:
-            self.generate_invite_code()
+        if is_new:
+            if not self.invite_code:
+                self.generate_invite_code()
+            # Use the same invite code for QR code
+            if not self.qr_code:
+                self.qr_code = self.invite_code
+                self.save(update_fields=['qr_code'])
 
     def get_total_expenses(self):
         return sum(expense.amount for expense in self.expenses.all())
@@ -100,3 +105,26 @@ class Settlement(models.Model):
         self.is_paid = True
         self.paid_at = timezone.now()
         self.save()
+
+class Notification(models.Model):
+    NOTIFICATION_TYPES = [
+        ('expense_added', 'New Expense Added'),
+        ('expense_updated', 'Expense Updated'),
+        ('expense_deleted', 'Expense Deleted'),
+        ('settlement_requested', 'Settlement Requested'),
+        ('settlement_paid', 'Settlement Paid'),
+        ('group_invitation', 'Group Invitation'),
+        ('group_joined', 'User Joined Group'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)
+    expense = models.ForeignKey(Expense, on_delete=models.SET_NULL, related_name='notifications', null=True, blank=True)
+    settlement = models.ForeignKey(Settlement, on_delete=models.SET_NULL, related_name='notifications', null=True, blank=True)
+    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES)
+    message = models.CharField(max_length=255)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.notification_type} for {self.user.username}'

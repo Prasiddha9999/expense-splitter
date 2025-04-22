@@ -22,4 +22,7 @@ urlpatterns = [
 
     path('export/pdf/<int:group_id>/', views.export_pdf, name='export-pdf'),
     path('export/excel/<int:group_id>/', views.export_excel, name='export-excel'),
+
+    path('notifications/', views.get_notifications, name='get-notifications'),
+    path('notifications/<int:notification_id>/read/', views.mark_notification_read, name='mark-notification-read'),
 ]

@@ -4,37 +4,80 @@
 {% block title %}Join Group - Divider{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h2 class="text-center mb-0">Join a Group</h2>
-            </div>
+<!-- Mobile Join Group View -->
+<div class="d-block d-md-none">
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a href="{% url 'groups' %}" class="back-button"><i class="fas fa-chevron-left"></i> Back</a>
+            <h5>Join Group</h5>
+            <div></div>
+        </div>
+
+        <div class="card mb-4">
             <div class="card-body">
-                <div class="alert alert-info">
-                    <p>Enter the 5-digit invitation code to join a group.</p>
-                </div>
-                
-                <form method="POST" action="{% url 'group-join-code' %}">
+                <form method="POST" action="{% url 'group-join-code' %}" id="mobileJoinForm">
                     {% csrf_token %}
-                    <div class="mb-3">
-                        <label for="inviteCode" class="form-label">Invitation Code</label>
-                        <input type="text" class="form-control form-control-lg text-center" id="inviteCode" name="invite_code" 
-                               placeholder="Enter 5-digit code" maxlength="5" required>
+                    <div class="mb-4">
+                        <h6 class="text-center mb-3">Enter 5-digit invitation code</h6>
+                        <div class="code-input-container">
+                            <input type="text" class="form-control form-control-lg text-center code-input" id="mobileInviteCode" name="invite_code"
+                                   placeholder="_____" maxlength="5" required pattern="[0-9]{5}" inputmode="numeric">
+                        </div>
                     </div>
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-primary btn-lg">Join Group</button>
+                        <button type="submit" class="action-button">Join Group</button>
                     </div>
                 </form>
-                
-                <div class="text-center mt-4">
-                    <p>Or scan a QR code to join a group</p>
-                    <button type="button" class="btn btn-outline-primary" id="scanQrButton">
-                        <i class="bi bi-qr-code-scan"></i> Scan QR Code
-                    </button>
-                    
-                    <div id="qrScanner" class="mt-3" style="display: none;">
-                        <div id="reader"></div>
+            </div>
+        </div>
+
+        <div class="text-center mb-4">
+            <p class="text-secondary">Or scan a QR code</p>
+            <button type="button" class="action-button" id="mobileScanQrButton">
+                <i class="fas fa-qr-code"></i> Scan QR Code
+            </button>
+
+            <div id="mobileQrScanner" class="mt-3" style="display: none;">
+                <div id="mobileReader" class="qr-reader-container"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Desktop Join Group View -->
+<div class="d-none d-md-block">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="text-center mb-0">Join a Group</h2>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <p>Enter the 5-digit invitation code to join a group.</p>
+                    </div>
+
+                    <form method="POST" action="{% url 'group-join-code' %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="inviteCode" class="form-label">Invitation Code</label>
+                            <input type="text" class="form-control form-control-lg text-center" id="inviteCode" name="invite_code"
+                                   placeholder="Enter 5-digit code" maxlength="5" required pattern="[0-9]{5}" inputmode="numeric">
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Join Group</button>
+                        </div>
+                    </form>
+
+                    <div class="text-center mt-4">
+                        <p>Or scan a QR code to join a group</p>
+                        <button type="button" class="btn btn-outline-primary" id="scanQrButton">
+                            <i class="fas fa-qr-code"></i> Scan QR Code
+                        </button>
+
+                        <div id="qrScanner" class="mt-3" style="display: none;">
+                            <div id="reader" class="qr-reader-container"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -46,19 +89,57 @@
 {% block extra_js %}
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script>
-    document.getElementById('scanQrButton').addEventListener('click', function() {
-        const qrScanner = document.getElementById('qrScanner');
+    // Function to initialize QR scanner
+    function initQrScanner(readerId, scannerId) {
+        const qrScanner = document.getElementById(scannerId);
         qrScanner.style.display = 'block';
-        
-        const html5QrCode = new Html5Qrcode("reader");
+
+        const html5QrCode = new Html5Qrcode(readerId);
         const config = { fps: 10, qrbox: { width: 250, height: 250 } };
-        
+
         html5QrCode.start({ facingMode: "environment" }, config, (decodedText) => {
             // Stop scanning
             html5QrCode.stop().then(() => {
-                // Redirect to the join URL
-                window.location.href = decodedText;
+                // Extract the 5-digit code from the URL if present
+                let code = decodedText;
+
+                // Check if it's a URL
+                if (decodedText.includes('/')) {
+                    // Extract the last part of the URL which should be the code
+                    const urlParts = decodedText.split('/');
+                    code = urlParts[urlParts.length - 2] || urlParts[urlParts.length - 1];
+                }
+
+                // Validate it's a 5-digit code
+                if (code.length === 5 && /^\d{5}$/.test(code)) {
+                    // Redirect to the join URL with the 5-digit code
+                    window.location.href = `/expenses/groups/join/${code}/`;
+                } else {
+                    alert('Invalid QR code. Please scan a valid 5-digit group invitation code.');
+                }
             });
+        });
+    }
+
+    // Desktop QR scanner
+    document.getElementById('scanQrButton').addEventListener('click', function() {
+        initQrScanner("reader", "qrScanner");
+    });
+
+    // Mobile QR scanner
+    document.getElementById('mobileScanQrButton').addEventListener('click', function() {
+        initQrScanner("mobileReader", "mobileQrScanner");
+    });
+
+    // Add animation to code input
+    const codeInputs = document.querySelectorAll('.code-input');
+    codeInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            if (this.value.length === 5) {
+                this.classList.add('code-complete');
+            } else {
+                this.classList.remove('code-complete');
+            }
         });
     });
 </script>

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ group.name }} - Group Expense Splitter{% endblock %}
+{% block title %}{{ group.name }} - Divider{% endblock %}
 
 {% block content %}
 <div class="row mb-4">
@@ -12,21 +12,21 @@
     <div class="col-md-4 text-end">
         <div class="btn-group" role="group">
             <a href="{% url 'expense-create' group.id %}" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> Add Expense
+                <i class="fas fa-plus-circle"></i> Add Expense
             </a>
             <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="groupActionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-gear"></i>
+                <i class="fas fa-cog"></i>
             </button>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="groupActionsDropdown">
-                <li><a class="dropdown-item" href="{% url 'group-invite' group.id %}"><i class="bi bi-person-plus"></i> Invite Members</a></li>
-                <li><a class="dropdown-item" href="{% url 'settlement-summary' group.id %}"><i class="bi bi-cash"></i> Settlement Summary</a></li>
+                <li><a class="dropdown-item" href="{% url 'group-invite' group.id %}"><i class="fas fa-user-plus"></i> Invite Members</a></li>
+                <li><a class="dropdown-item" href="{% url 'settlement-summary' group.id %}"><i class="fas fa-money-bill-wave"></i> Settlement Summary</a></li>
                 <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="{% url 'export-pdf' group.id %}"><i class="bi bi-file-pdf"></i> Export to PDF</a></li>
-                <li><a class="dropdown-item" href="{% url 'export-excel' group.id %}"><i class="bi bi-file-excel"></i> Export to Excel</a></li>
+                <li><a class="dropdown-item" href="{% url 'export-pdf' group.id %}"><i class="fas fa-file-pdf"></i> Export to PDF</a></li>
+                <li><a class="dropdown-item" href="{% url 'export-excel' group.id %}"><i class="fas fa-file-excel"></i> Export to Excel</a></li>
                 {% if user == group.admin %}
                     <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item" href="{% url 'group-edit' group.id %}"><i class="bi bi-pencil"></i> Edit Group</a></li>
-                    <li><a class="dropdown-item text-danger" href="{% url 'group-delete' group.id %}"><i class="bi bi-trash"></i> Delete Group</a></li>
+                    <li><a class="dropdown-item" href="{% url 'group-edit' group.id %}"><i class="fas fa-pencil-alt"></i> Edit Group</a></li>
+                    <li><a class="dropdown-item text-danger" href="{% url 'group-delete' group.id %}"><i class="fas fa-trash-alt"></i> Delete Group</a></li>
                 {% endif %}
             </ul>
         </div>
@@ -45,7 +45,7 @@
                 <p><strong>Created:</strong> {{ group.created_at|date:"F j, Y" }}</p>
                 <p><strong>Admin:</strong> {{ group.admin.username }}</p>
                 <hr>
-                <p><strong>Your Balance:</strong> 
+                <p><strong>Your Balance:</strong>
                     {% if user_balance > 0 %}
                         <span class="text-success">+{{ user_balance }} (You are owed)</span>
                     {% elif user_balance < 0 %}
@@ -62,7 +62,7 @@
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">Members</h5>
                 <a href="{% url 'group-invite' group.id %}" class="btn btn-sm btn-outline-primary">
-                    <i class="bi bi-person-plus"></i> Invite
+                    <i class="fas fa-user-plus"></i> Invite
                 </a>
             </div>
             <div class="card-body">
@@ -90,7 +90,7 @@
     <div class="card-header d-flex justify-content-between align-items-center">
         <h5 class="card-title mb-0">Expenses</h5>
         <a href="{% url 'expense-create' group.id %}" class="btn btn-sm btn-primary">
-            <i class="bi bi-plus-circle"></i> Add Expense
+            <i class="fas fa-plus-circle"></i> Add Expense
         </a>
     </div>
     <div class="card-body">
@@ -108,7 +108,7 @@
                     </thead>
                     <tbody>
                         {% for expense in expenses %}
-                            <tr>
+                            <tr class="{% for notification in expense.notifications.all %}{% if notification.user == user and not notification.is_read %}expense-row-new{% endif %}{% endfor %}">
                                 <td>{{ expense.date|date:"M d, Y" }}</td>
                                 <td>{{ expense.description }}</td>
                                 <td>{{ expense.payer.username }}</td>
