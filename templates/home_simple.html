@@ -1,0 +1,61 @@
+{% extends 'base_simple.html' %}
+
+{% block title %}Home - Group Expense Splitter{% endblock %}
+
+{% block content %}
+<div class="row align-items-center py-5">
+    <div class="col-md-6">
+        <h1 class="display-4 fw-bold">Split Expenses with Friends</h1>
+        <p class="lead">Easily manage shared expenses for trips, events, or daily usage. Track who paid what and settle up without the hassle.</p>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+            <a href="/register/" class="btn btn-primary btn-lg px-4 me-md-2">Get Started</a>
+            <a href="/login/" class="btn btn-outline-secondary btn-lg px-4">Login</a>
+        </div>
+    </div>
+    <div class="col-md-6 text-center">
+        <div class="feature-icon mb-3">
+            <i class="bi bi-cash-stack"></i>
+        </div>
+        <h3>Group Expense Splitter</h3>
+        <p>Your solution for hassle-free expense sharing</p>
+    </div>
+</div>
+
+<hr class="my-5">
+
+<div class="row g-4 py-5">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="feature-icon mb-3">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <h3>Create Groups</h3>
+                <p>Create groups for trips, events, or roommates. Invite friends to join and start tracking expenses together.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="feature-icon mb-3">
+                    <i class="bi bi-cash-stack"></i>
+                </div>
+                <h3>Track Expenses</h3>
+                <p>Add expenses with details like amount, date, description, and receipt. Split equally or customize how much each person pays.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body text-center">
+                <div class="feature-icon mb-3">
+                    <i class="bi bi-calculator"></i>
+                </div>
+                <h3>Settle Up</h3>
+                <p>See who owes whom with our smart settlement calculator. Mark debts as paid and keep everyone on the same page.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

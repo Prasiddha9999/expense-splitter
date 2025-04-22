@@ -29,34 +29,68 @@ def home(request):
             'environment': 'production' if os.environ.get('PRODUCTION') else 'development',
         })
 
-    # For regular requests, render the home template
+    # Try to use the simplified template first
     try:
-        return render(request, 'home.html')
+        return render(request, 'home_simple.html')
     except Exception as e:
-        # Fallback for deployment testing
-        html = f'''
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Group Expense Splitter</title>
-            <style>
-                body {{ font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f9f9f9; }}
-                .container {{ max-width: 800px; margin: 0 auto; background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }}
-                h1 {{ color: #FFD700; }}
-                .success {{ color: green; }}
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>Group Expense Splitter</h1>
-                <p class="success">Application is running successfully!</p>
-                <p>This is a fallback page for deployment testing.</p>
-                <p>The application is running in {os.environ.get('DJANGO_SETTINGS_MODULE', 'unknown')} mode.</p>
-            </div>
-        </body>
-        </html>
-        '''
-        return HttpResponse(html)
+        print(f"Error rendering home_simple.html: {e}")
+        # If that fails, try the regular template
+        try:
+            return render(request, 'home.html')
+        except Exception as e:
+            print(f"Error rendering home.html: {e}")
+            # If all else fails, return a simple HTML response
+            html = f'''
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Group Expense Splitter</title>
+                <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+                <style>
+                    body {{ font-family: Arial, sans-serif; background-color: #f9f9f9; }}
+                    .container {{ max-width: 800px; margin: 0 auto; background-color: white; padding: 20px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-top: 50px; }}
+                    h1 {{ color: #FFD700; }}
+                    .success {{ color: green; }}
+                    .feature {{ margin-top: 30px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }}
+                    .feature h3 {{ color: #FFD700; }}
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <h1 class="text-center mb-4">Group Expense Splitter</h1>
+                    <div class="alert alert-success">
+                        <p class="success">Application is running successfully!</p>
+                        <p>Running in {os.environ.get('DJANGO_SETTINGS_MODULE', 'unknown')} mode.</p>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="feature">
+                                <h3>Create Groups</h3>
+                                <p>Organize expenses by creating groups for trips, events, or roommates.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="feature">
+                                <h3>Track Expenses</h3>
+                                <p>Add expenses and split them equally or customize how much each person pays.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="feature">
+                                <h3>Settle Up</h3>
+                                <p>See who owes whom with our smart settlement calculator.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+            </body>
+            </html>
+            '''
+            return HttpResponse(html)
 
 @login_required
 def groups(request):
