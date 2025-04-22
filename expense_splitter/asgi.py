@@ -8,9 +8,19 @@ https://docs.djangoproject.com/en/5.2/howto/deployment/asgi/
 """
 
 import os
+import sys
+
+# Add the project directory to the Python path
+path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if path not in sys.path:
+    sys.path.append(path)
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'expense_splitter.settings')
+# Check for production environment
+if os.environ.get('RENDER') or os.environ.get('PRODUCTION'):
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'expense_splitter.production')
+else:
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'expense_splitter.settings')
 
 application = get_asgi_application()

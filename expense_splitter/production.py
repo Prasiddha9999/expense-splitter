@@ -3,9 +3,9 @@ import dj_database_url
 from .settings import *
 
 # Security settings
-DEBUG = False
+DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 SECRET_KEY = os.environ.get('SECRET_KEY')
-ALLOWED_HOSTS = ['expense-splitter.onrender.com', '.onrender.com']
+ALLOWED_HOSTS = ['expense-splitter.onrender.com', '.onrender.com', 'localhost', '127.0.0.1']
 
 # Database
 # Use DATABASE_URL environment variable for database configuration
