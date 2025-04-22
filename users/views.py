@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.views import PasswordResetView
+from django.contrib.auth.views import PasswordResetView, LoginView
 from django.urls import reverse_lazy
+from django.http import HttpResponseRedirect
 from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm
 import logging
 
@@ -42,6 +43,30 @@ def profile(request):
     }
 
     return render(request, 'users/profile.html', context)
+
+
+class CustomLoginView(LoginView):
+    template_name = 'users/login.html'
+
+    def get_success_url(self):
+        # Check if there's a pending group join
+        if 'join_group_id' in self.request.session:
+            group_id = self.request.session.pop('join_group_id')
+            from expenses.models import Group
+
+            # Try to get the group
+            try:
+                group = Group.objects.get(id=group_id)
+                # Add user to the group
+                if self.request.user not in group.members.all():
+                    group.members.add(self.request.user)
+                    messages.success(self.request, f'You have joined {group.name}!')
+                return reverse_lazy('group-detail', kwargs={'group_id': group_id})
+            except Group.DoesNotExist:
+                pass
+
+        # Default redirect to groups page
+        return reverse_lazy('groups')
 
 
 class CustomPasswordResetView(PasswordResetView):

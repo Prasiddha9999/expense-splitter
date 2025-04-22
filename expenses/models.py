@@ -2,6 +2,8 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 import uuid
+import random
+import string
 
 class Currency(models.Model):
     code = models.CharField(max_length=3, unique=True)
@@ -21,17 +23,35 @@ class Group(models.Model):
     created_at = models.DateTimeField(default=timezone.now)
     admin = models.ForeignKey(User, on_delete=models.CASCADE, related_name='administered_groups')
     members = models.ManyToManyField(User, related_name='expense_groups')
-    invite_code = models.CharField(max_length=36, unique=True, default=uuid.uuid4)
+    invite_code = models.CharField(max_length=5, unique=True, blank=True)
+    qr_code = models.CharField(max_length=36, unique=True, default=uuid.uuid4)
     image = models.ImageField(upload_to='group_images', default='default_group.jpg')
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        """Override save method to generate invite code if it doesn't exist"""
+        is_new = self.pk is None
+        super().save(*args, **kwargs)
+
+        if is_new and not self.invite_code:
+            self.generate_invite_code()
 
     def get_total_expenses(self):
         return sum(expense.amount for expense in self.expenses.all())
 
     def get_member_count(self):
         return self.members.count()
+
+    def generate_invite_code(self):
+        """Generate a random 5-digit invitation code"""
+        while True:
+            code = ''.join(random.choices(string.digits, k=5))
+            if not Group.objects.filter(invite_code=code).exists():
+                self.invite_code = code
+                self.save(update_fields=['invite_code'])
+                return code
 
 class Expense(models.Model):
     SPLIT_CHOICES = [

@@ -125,23 +125,62 @@ def group_invite(request, group_id):
         messages.warning(request, 'You are not a member of this group.')
         return redirect('groups')
 
-    invite_url = request.build_absolute_uri(f'/expenses/groups/join/{group.invite_code}/')
+    # Generate a 5-digit invitation code if it doesn't exist
+    if not group.invite_code:
+        group.generate_invite_code()
 
-    return render(request, 'expenses/group_invite.html', {'group': group, 'invite_url': invite_url})
+    # Build the invite URL using the qr_code (for QR code scanning)
+    invite_url = request.build_absolute_uri(f'/expenses/groups/join/{group.qr_code}/')
+
+    return render(request, 'expenses/group_invite.html', {
+        'group': group,
+        'invite_url': invite_url,
+        'invite_code': group.invite_code
+    })
+
+def group_join_page(request):
+    """Render the join group page with form to enter 5-digit code"""
+    return render(request, 'expenses/join_group.html')
+
+
+def group_join_by_code(request):
+    """Handle form submission to join a group by 5-digit code"""
+    if request.method == 'POST':
+        invite_code = request.POST.get('invite_code')
+        if invite_code:
+            return redirect('group-join', invite_code=invite_code)
+
+    messages.error(request, 'Please enter a valid invitation code.')
+    return redirect('group-join-page')
+
 
 def group_join(request, invite_code):
-    group = get_object_or_404(Group, invite_code=invite_code)
+    """Join a group using either the 5-digit code or QR code (UUID)"""
+    # Try to find group by invite_code (5-digit code) first
+    group = Group.objects.filter(invite_code=invite_code).first()
 
-    if request.user.is_authenticated:
-        if request.user in group.members.all():
-            messages.info(request, f'You are already a member of {group.name}.')
-        else:
-            group.members.add(request.user)
-            messages.success(request, f'You have joined {group.name}!')
-        return redirect('group-detail', group_id=group.id)
-    else:
-        messages.info(request, 'Please log in to join the group.')
+    # If not found, try to find by qr_code (UUID)
+    if not group:
+        group = Group.objects.filter(qr_code=invite_code).first()
+
+    if not group:
+        messages.error(request, 'Invalid invitation code. Please check and try again.')
+        return redirect('group-join-page')
+
+    # Store the group ID in session for post-login redirect
+    if not request.user.is_authenticated:
+        request.session['join_group_id'] = group.id
+        messages.info(request, f'Please log in to join {group.name}.')
         return redirect('login')
+
+    # User is authenticated
+    if request.user in group.members.all():
+        messages.info(request, f'You are already a member of {group.name}.')
+    else:
+        group.members.add(request.user)
+        messages.success(request, f'You have joined {group.name}!')
+
+    return redirect('group-detail', group_id=group.id)
 
 @login_required
 def expense_create(request, group_id):

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Invite Members - {{ group.name }} - Group Expense Splitter{% endblock %}
+{% block title %}Invite Members - {{ group.name }} - Divider{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
@@ -14,21 +14,44 @@
                 <div class="alert alert-info">
                     <p>Share the link below to invite people to join your group. Anyone with this link can join the group.</p>
                 </div>
-                
+
                 <div class="input-group mb-3">
                     <input type="text" class="form-control" id="inviteUrl" value="{{ invite_url }}" readonly>
                     <button class="btn btn-outline-secondary" type="button" id="copyButton" onclick="copyInviteUrl()">
                         <i class="bi bi-clipboard"></i> Copy
                     </button>
                 </div>
-                
-                <div class="text-center mt-4">
-                    <div class="qr-code-container mb-3">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ invite_url|urlencode }}" alt="QR Code" class="img-fluid">
+
+                <div class="row mt-4">
+                    <div class="col-md-6 text-center">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">Option 1: QR Code</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="qr-code-container mb-3">
+                                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ invite_url|urlencode }}" alt="QR Code" class="img-fluid">
+                                </div>
+                                <p>Scan this QR code to join the group</p>
+                            </div>
+                        </div>
                     </div>
-                    <p>Scan this QR code to join the group</p>
+                    <div class="col-md-6 text-center">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                <h5 class="mb-0">Option 2: Invitation Code</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="invitation-code mb-3">
+                                    <h1 class="display-4 fw-bold">{{ invite_code }}</h1>
+                                </div>
+                                <p>Share this 5-digit code with your friends</p>
+                                <p class="text-muted">They can enter this code on the Join Group page</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                
+
                 <div class="text-center mt-4">
                     <a href="{% url 'group-detail' group.id %}" class="btn btn-primary">Back to Group</a>
                 </div>
@@ -45,10 +68,10 @@
         copyText.select();
         copyText.setSelectionRange(0, 99999); /* For mobile devices */
         document.execCommand("copy");
-        
+
         var copyButton = document.getElementById("copyButton");
         copyButton.innerHTML = '<i class="bi bi-check"></i> Copied!';
-        
+
         setTimeout(function() {
             copyButton.innerHTML = '<i class="bi bi-clipboard"></i> Copy';
         }, 2000);
